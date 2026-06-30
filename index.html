@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bridgewell Table · Template</title>
+<style>
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  /* Per-module accent — overridden at runtime from TABLE.theme.accent (see boot()) */
+  --accent:#4F81BD;
+  --accent-hover:#3a6da8;
+  --accent-focus:#7ab0e0;
+  --accent-soft:rgba(79,129,189,.07);
+  --accent-soft2:rgba(79,129,189,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0d1424}
+body{font-family:var(--font-sans);display:flex;align-items:flex-start;justify-content:center;min-height:100vh}
+#app{width:100%;max-width:920px;min-height:580px;font-family:var(--font-sans);background:#1a2744;box-shadow:0 10px 40px rgba(0,0,0,.5);overflow:hidden;border-radius:4px}
+.screen{display:none;width:100%;min-height:580px}
+.screen.active{display:flex}
+
+/* AVERY SCREENS */
+.avery-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.avery-photo{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin:0 auto 1rem;display:block}
+.avery-photo-ph{width:90px;height:90px;border-radius:50%;background:#2d3f6e;border:3px solid var(--accent);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;color:#a0b4cc;font-size:.7rem;text-align:center}
+.avery-label{color:#a0b4cc;font-size:.75rem;letter-spacing:.06em;margin-bottom:.2rem}
+.avery-title{color:#fff;font-size:1.15rem;font-weight:600;margin-bottom:.2rem}
+.avery-sub{color:#7a90b0;font-size:.8rem;margin-bottom:1.2rem}
+.avery-quote{color:#d0dcea;font-size:.9rem;line-height:1.8;max-width:500px;margin:0 auto .9rem;font-style:italic}
+.avery-body{color:#b0c4d8;font-size:.83rem;line-height:1.75;max-width:500px;margin:0 auto 1.5rem}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.65rem 1.8rem;font-size:.9rem;cursor:pointer;font-weight:500;transition:background .15s}
+.btn-primary:hover,.btn-primary:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+
+/* AUDIO BAR */
+.audio-wrap{display:flex;align-items:center;gap:.6rem;max-width:360px;margin:0 auto 1.1rem}
+.audio-play{width:32px;height:32px;border-radius:50%;background:var(--accent);border:2px solid transparent;cursor:pointer;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.audio-play:hover,.audio-play:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+.audio-track{flex:1;height:4px;background:rgba(255,255,255,.15);border-radius:2px;cursor:pointer;position:relative}
+.audio-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .25s linear}
+.audio-time{color:#7a90b0;font-size:.7rem;min-width:34px;text-align:right}
+.audio-error{color:#e07a7a;font-size:.72rem;margin-top:.3rem;display:none}
+.transcript-btn{background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;cursor:pointer;margin-top:.4rem}
+.transcript-btn:hover,.transcript-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.transcript-box{background:#0d1a30;border:1px solid #2d3f6e;border-radius:6px;padding:.75rem 1rem;font-size:.78rem;color:#b0c4d8;line-height:1.65;max-width:500px;margin:.5rem auto 0;text-align:left;display:none}
+
+/* HUB */
+.hub-screen{flex-direction:column;align-items:center;justify-content:center;padding:1.8rem 1rem;background:#1a2744;min-height:580px;position:relative}
+.hub-title{color:#fff;font-size:1rem;font-weight:600;margin-bottom:.25rem}
+.hub-sub{color:#7a90b0;font-size:.78rem;margin-bottom:.9rem;text-align:center}
+.prog-wrap{width:100%;max-width:500px;height:5px;background:#2d3f6e;border-radius:3px;margin-bottom:.35rem}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
+.prog-label{color:#7a90b0;font-size:.72rem;margin-bottom:1.4rem}
+.char-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.7rem;width:100%;max-width:640px}
+@media(max-width:600px){.char-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:380px){.char-grid{grid-template-columns:repeat(2,1fr)}}
+.char-card{border-radius:10px;padding:.85rem .5rem;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;position:relative}
+.char-card:hover:not(.done),.char-card:focus:not(.done){transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.4);outline:none}
+.char-card:focus:not(.done){outline:2px solid #fff;outline-offset:2px}
+.char-card.done{opacity:.5;cursor:default}
+.char-avatar{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;object-fit:cover;border:2px solid rgba(255,255,255,.25);display:block}
+.char-avatar-ph{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:.85rem;border:2px solid rgba(255,255,255,.2)}
+.char-name{font-size:.74rem;font-weight:600;color:#fff}
+.char-role{font-size:.63rem;color:rgba(255,255,255,.5);margin-top:.1rem;line-height:1.3}
+.done-badge{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center}
+.reset-btn{margin-top:1.5rem;background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.4rem 1rem;font-size:.75rem;cursor:pointer}
+.reset-btn:hover,.reset-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.debrief-btn{position:absolute;right:1.1rem;bottom:1.1rem;background:#2d3f6e;color:#fff;border:1px solid #43578a;border-radius:8px;padding:.5rem 1rem;font-size:.78rem;font-weight:500;cursor:pointer}
+.debrief-btn:hover{background:#37487a}
+
+/* SPLIT SCREENS */
+.split-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.split-screen{flex-direction:column}}
+.s-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:280px}
+@media(max-width:700px){.s-left{flex:0 0 220px}}
+.s-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.s-left-color{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem}
+.char-portrait{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem;display:block}
+.char-portrait-ph{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.4rem;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem}
+.char-name-large{color:#fff;font-size:1.1rem;font-weight:600;margin-bottom:.2rem}
+.char-role-large{color:rgba(255,255,255,.6);font-size:.78rem}
+
+.bubble{position:absolute;top:.9rem;left:.9rem;right:.9rem;background:rgba(15,25,50,.88);border-left:3px solid var(--accent);color:#d0dcea;border-radius:8px;padding:.6rem .8rem;font-size:.76rem;line-height:1.5;font-style:italic;max-width:240px}
+.family-flag{position:absolute;bottom:.8rem;left:.8rem;background:rgba(150,70,10,.9);border-radius:7px;padding:.5rem .7rem;font-size:.71rem;color:#fff;line-height:1.4;max-width:240px}
+.family-flag strong{display:block;font-size:.65rem;letter-spacing:.04em;margin-bottom:.12rem;opacity:.85}
+
+.s-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.scene-ctx{font-size:.79rem;color:#444;line-height:1.6;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid #ced3dc}
+.q-label{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.3rem;text-transform:uppercase}
+.q-text{font-size:.86rem;font-weight:600;color:#1a2744;line-height:1.5;margin-bottom:.85rem}
+.choices{display:flex;flex-direction:column;gap:.55rem}
+.choice-btn{display:flex;align-items:flex-start;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;text-align:left;padding:.35rem .4rem;transition:border-color .15s}
+.choice-btn:hover,.choice-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.choice-btn.selected{border-color:var(--accent);background:var(--accent-soft2)}
+.cbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;margin-top:1px;flex-shrink:0}
+.choice-btn:hover .cbullet,.choice-btn:focus-visible .cbullet{background:var(--accent)}
+.choice-btn.selected .cbullet{background:var(--accent);box-shadow:inset 0 0 0 3px #fff}
+.ctext{font-size:.8rem;color:#222;line-height:1.5}
+
+/* CHAR INTRO SCREEN */
+.char-intro-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.char-intro-screen{flex-direction:column}}
+.ci-audio-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.92);border-top:2px solid;padding:.6rem .9rem;display:flex;align-items:center;gap:.6rem}
+.ci-play{width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci-play:hover,.ci-play:focus{opacity:.85;outline:2px solid #fff;outline-offset:2px}
+.ci-track{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;cursor:pointer}
+.ci-fill{height:100%;border-radius:2px;width:0%}
+.ci-time{color:rgba(255,255,255,.45);font-size:.66rem;min-width:28px}
+
+/* FEEDBACK */
+.fb-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.fb-screen{flex-direction:column}}
+.fb-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:240px}
+@media(max-width:700px){.fb-left{flex:0 0 200px}}
+.fb-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.fb-left-color{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.consequence-banner{position:absolute;bottom:0;left:0;right:0;background:rgba(120,20,20,.92);padding:.7rem .9rem;font-size:.74rem;color:#fff;line-height:1.5}
+.consequence-banner strong{display:block;font-size:.64rem;letter-spacing:.04em;margin-bottom:.12rem}
+.avery-interrupt{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.94);border-top:2px solid var(--accent);padding:.7rem .9rem;font-size:.74rem;color:#d0dcea;line-height:1.5;font-style:italic}
+.avery-interrupt strong{display:block;font-size:.64rem;color:var(--accent);letter-spacing:.04em;margin-bottom:.12rem;font-style:normal}
+.fb-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.fb-chosen{font-size:.8rem;color:#333;font-weight:500;margin-bottom:.6rem;line-height:1.5;padding:.5rem .7rem;background:#dde2eb;border-radius:6px;border-left:3px solid #9ab0cc}
+.fb-chosen.correct{background:#e7f2da;border-left:4px solid #2f7d1f;color:#234016}
+.fb-chosen.wrong{background:#f7dede;border-left:4px solid #c0392b;color:#5a1f18}
+.fb-chosen.wrong::before{content:'\2717  INCORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#c0392b;margin-bottom:.25rem}
+.fb-chosen.correct::before{content:'\2713  CORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#2f7d1f;margin-bottom:.25rem}
+.fb-lbl{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.22rem;text-transform:uppercase}
+.fb-text{font-size:.8rem;color:#333;line-height:1.6;margin-bottom:.7rem}
+.fb-takeaway{font-size:.8rem;font-weight:600;font-style:italic;color:#1D3D0F;line-height:1.6;margin-bottom:.9rem;padding:.5rem .7rem;border-left:3px solid #1D3D0F;background:#eaf3de;border-radius:0 6px 6px 0}
+.fb-actions{display:flex;flex-direction:column;gap:.45rem}
+.fb-btn{display:flex;align-items:center;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;padding:.25rem .35rem;transition:border-color .15s}
+.fb-btn:hover,.fb-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.fbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;flex-shrink:0}
+.fb-btn:hover .fbullet,.fb-btn:focus-visible .fbullet{background:var(--accent)}
+.fb-btn-text{font-size:.8rem;color:#222}
+
+/* LIVE REGION */
+#live-region{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* EXIT */
+.exit-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.exit-ring{width:68px;height:68px;border-radius:50%;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--accent);font-size:1.5rem}
+</style>
+</head>
+<body>
+
+<div id="app" role="main">
+<div aria-live="polite" aria-atomic="true" id="live-region"></div>
+
+<!-- INTRO (text filled by boot() from TABLE) -->
+<div class="screen avery-screen active" id="screen-intro" role="region" aria-label="Course introduction">
+  <img class="avery-photo" id="intro-avery-photo" src="assets/avery.png" alt="Dr. Patricia Avery" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+  <div class="avery-photo-ph" style="display:none">DA</div>
+  <div class="avery-label" id="intro-avery-label"></div>
+  <div class="avery-title" id="intro-title"></div>
+  <div class="avery-sub" id="intro-sub"></div>
+  <div class="audio-wrap" id="aw-intro">
+    <button class="audio-play" id="btn-avery_intro" onclick="toggleAudio('avery_intro')" aria-label="Play Dr. Avery introduction">▶</button>
+    <div class="audio-track" role="progressbar" aria-label="Audio progress" onclick="seekAudio(event,'avery_intro')"><div class="audio-fill" id="fill-avery_intro"></div></div>
+    <span class="audio-time" id="time-avery_intro" aria-live="off">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_intro">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-intro')" aria-expanded="false" aria-controls="tr-intro">Show transcript</button>
+  <div class="transcript-box" id="tr-intro" role="note"></div>
+  <div class="avery-quote" id="intro-quote" style="margin-top:.9rem"></div>
+  <div class="avery-body" id="intro-body"></div>
+  <button class="btn-primary" id="intro-enter" onclick="showHub()" style="margin-top:.5rem">Enter the room →</button>
+</div>
+
+<!-- HUB (title/sub + cards filled by boot()) -->
+<div class="screen hub-screen" id="screen-hub" role="region" aria-label="Character selection">
+  <div class="hub-title" id="hub-title"></div>
+  <div class="hub-sub" id="hub-sub"></div>
+  <div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
+  <div class="prog-label" id="prog-label" aria-live="polite">0 of 5 perspectives completed</div>
+  <div class="char-grid" id="char-grid" role="list"></div>
+  <button class="reset-btn" onclick="confirmReset()" aria-label="Reset simulation and start over">↺ Start over</button>
+  <button class="debrief-btn" onclick="show('screen-exit')" aria-label="Skip to Dr. Avery's debrief and finish">Dr. Avery's debrief →</button>
+</div>
+
+<!-- CHAR INTRO -->
+<div class="screen char-intro-screen" id="screen-char-intro" role="region" aria-label="Character introduction">
+  <div class="s-left" id="ci-left">
+    <div class="s-left-color" id="ci-color-panel">
+      <img class="char-portrait" id="ci-portrait" alt="" onerror="this.style.display='none';document.getElementById('ci-portrait-ph').style.display='flex'">
+      <div class="char-portrait-ph" id="ci-portrait-ph" style="display:none"></div>
+      <div class="char-name-large" id="ci-name-large"></div>
+      <div class="char-role-large" id="ci-role-large"></div>
+    </div>
+    <div class="ci-audio-bar" id="ci-bar">
+      <button class="ci-play" id="ci-play-btn" onclick="toggleAudio('char_intro')" aria-label="Play character introduction audio">▶</button>
+      <div class="ci-track" onclick="seekAudio(event,'char_intro')" aria-label="Audio seek bar"><div class="ci-fill" id="fill-char_intro"></div></div>
+      <span class="ci-time" id="time-char_intro">0:00</span>
+    </div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="q-label" id="ci-role-label"></div>
+      <div class="q-text" id="ci-intro-text" style="font-size:.95rem;line-height:1.75;color:#1a2744;font-weight:400"></div>
+      <div class="audio-error" id="err-char_intro" style="color:#c05050;font-size:.74rem;margin-top:.5rem">Audio unavailable</div>
+      <button class="transcript-btn" id="ci-transcript-btn" onclick="toggleTranscript('tr-char')" aria-expanded="false" aria-controls="tr-char" style="margin-top:.6rem">Show transcript</button>
+      <div class="transcript-box" id="tr-char" role="note" style="margin-top:.5rem"></div>
+    </div>
+    <div style="margin-top:1.2rem">
+      <button class="btn-primary" style="background:#1a2744;font-size:.83rem" onclick="goToQ1()">Begin scenario →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q1 -->
+<div class="screen split-screen" id="screen-q1" role="region" aria-label="Question 1">
+  <div class="s-left">
+    <img class="s-left-img" id="q1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q1-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q1-color-panel" style="display:none">
+      <img class="char-portrait" id="q1-portrait" alt="">
+      <div class="char-name-large" id="q1-char-name"></div>
+    </div>
+    <div class="bubble" id="q1-bubble"></div>
+    <div class="family-flag" id="q1-family" style="display:none"><strong class="family-tag"></strong><span id="q1-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q1-ctx"></div>
+      <div class="q-label">Question 1 of 2</div>
+      <div class="q-text" id="q1-text"></div>
+      <div class="choices" id="q1-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB1 -->
+<div class="screen fb-screen" id="screen-fb1" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb1-color').style.display='flex'">
+    <video class="fb-left-img" id="fb1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb1-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb1-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb1-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb1-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb1-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb1-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb1-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb1-text"></div>
+      <div class="fb-takeaway" id="fb1-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb1-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="screen split-screen" id="screen-q2" role="region" aria-label="Question 2">
+  <div class="s-left">
+    <img class="s-left-img" id="q2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q2-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q2-color-panel" style="display:none">
+      <img class="char-portrait" id="q2-portrait" alt="">
+      <div class="char-name-large" id="q2-char-name"></div>
+    </div>
+    <div class="bubble" id="q2-bubble"></div>
+    <div class="family-flag" id="q2-family" style="display:none"><strong class="family-tag"></strong><span id="q2-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q2-ctx"></div>
+      <div class="q-label">Question 2 of 2</div>
+      <div class="q-text" id="q2-text"></div>
+      <div class="choices" id="q2-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB2 -->
+<div class="screen fb-screen" id="screen-fb2" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb2-color').style.display='flex'">
+    <video class="fb-left-img" id="fb2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb2-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb2-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb2-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb2-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb2-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb2-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb2-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb2-text"></div>
+      <div class="fb-takeaway" id="fb2-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb2-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- EXIT / DEBRIEF (filled by boot()) -->
+<div class="screen exit-screen" id="screen-exit" role="region" aria-label="Simulation complete">
+  <div class="exit-ring" aria-hidden="true">✓</div>
+  <div class="avery-label" id="exit-avery-label" style="color:#7a90b0;margin-bottom:.3rem">DR. PATRICIA AVERY</div>
+  <div class="avery-title" id="exit-title" style="color:#fff;margin-bottom:.3rem"></div>
+  <div class="avery-sub" id="exit-sub" style="margin-bottom:.9rem"></div>
+  <div class="audio-wrap">
+    <button class="audio-play" id="btn-avery_exit" onclick="toggleAudio('avery_exit')" aria-label="Play Dr. Avery closing remarks">▶</button>
+    <div class="audio-track" onclick="seekAudio(event,'avery_exit')" aria-label="Audio progress"><div class="audio-fill" id="fill-avery_exit"></div></div>
+    <span class="audio-time" id="time-avery_exit">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_exit">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-exit')" aria-expanded="false" aria-controls="tr-exit">Show transcript</button>
+  <div class="transcript-box" id="tr-exit" role="note"></div>
+  <div class="avery-review" style="max-width:580px;margin:1.4rem auto 0;text-align:left">
+    <div id="exit-lessons-intro" style="color:#7a90b0;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.7rem;text-align:center"></div>
+    <div id="exit-lessons" style="display:flex;flex-direction:column;gap:.6rem"></div>
+  </div>
+  <div class="avery-body" id="exit-body" style="margin-top:1.3rem"></div>
+  <div style="max-width:520px;margin:1.5rem auto 0;display:flex;align-items:center;gap:.6rem;justify-content:center;padding:.7rem 1rem;background:rgba(79,168,92,.12);border:1px solid rgba(79,168,92,.4);border-radius:10px">
+    <span aria-hidden="true" style="color:#6fc47a;font-size:1rem;flex-shrink:0">✓</span>
+    <span style="color:#cdeacf;font-size:.82rem;line-height:1.5"><strong style="color:#fff" id="exit-completion"></strong> Continue in your lesson when you're ready.</span>
+  </div>
+  <div style="display:flex;gap:.8rem;margin-top:1.2rem;flex-wrap:wrap;justify-content:center">
+    <button class="btn-primary" onclick="confirmReset()">↺ Start over</button>
+    <button class="btn-primary" style="background:#2d3f6e" onclick="showHub()">Review hub</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ============================================================================
+   ███  EDIT EVERYTHING IN THIS "TABLE" OBJECT TO MAKE A NEW BRIDGEWELL TABLE ███
+   ----------------------------------------------------------------------------
+   The engine below reads ONLY from TABLE. To build another module:
+     1. Copy this whole file.
+     2. Edit the fields in TABLE (title, accent, intro, the 5 team members, debrief).
+     3. Drop the matching images/audio into  assets/  (see TEMPLATE_GUIDE.md).
+     4. Deploy to its own GitHub repo + Pages, embed the URL in Rise.
+   The Bridgewell team (names, colors, portraits) and the Rivera-Washington
+   family are CANON — keep them consistent across every table.
+   ========================================================================== */
+const TABLE = {
+  "meta": {
+    "title": "Why Carmen Hasn't Gone",
+    "moduleLabel": "Module 8 · ALH 4105 · Plan: Behavior Change Layer",
+    "hubTitle": "The Bridgewell Table",
+    "hubSub": "Six weeks after the plan was finalized, only 4 of 23 referred patients enrolled — and Carmen isn't one of them. Sit with each clinician and run PRECEDE-PROCEED Phase 3: map the predisposing, enabling, and reinforcing factors, find the gap, and revise.",
+    "completion": "You've completed Module 8 — Behavior Change Layer. Your prevention strategy now accounts for motivation, capacity, and what sustains people.",
+    "familyTag": "RIVERA-WASHINGTON FAMILY"
+  },
+  "theme": {
+    "accent": "#A2475E"
+  },
+  "avery": {
+    "label": "DR. PATRICIA AVERY · BRIDGEWELL COMMUNITY HEALTH",
+    "portrait": "assets/avery.png",
+    "intro": {
+      "quote": "\"A plan names what a program will do. It does not explain why anyone will show up. Six weeks ago we built a strategy we were proud of. Today, four of twenty-three referred patients are enrolled — and the woman whose case started all of this still hasn't gone. The strategy isn't wrong. It's incomplete.\"",
+      "bodyHtml": "Last module you built the prevention strategy — a <em>mission</em>, <em>goals</em>, <em>SMART objectives</em>, <em>PEARL-tested strategies</em>, and a <em>logic model</em>. On paper it was complete. Then we sent it into the world, and the world had conditions we never mapped.<br><br>Here is the uncomfortable number: <strong>four of twenty-three</strong> referred patients enrolled. Carmen Rivera — who met every criterion, who had a navigator and a warm handoff and a confirmed risk — is not one of them. Nothing about the <em>strategy</em> failed. Something about <strong>behavior</strong> did, and we didn't account for it.<br><br>That is what <strong>PRECEDE-PROCEED Phase 3</strong> — the educational and ecological assessment — exists to catch. Before you finalize a strategy, map the conditions that decide whether people act. They fall in three layers. <strong>Predisposing factors</strong> — the beliefs, knowledge, and motivation <em>inside</em> the person. <strong>Enabling factors</strong> — the access, transport, language, and schedule that make acting <em>possible or impossible</em>. <strong>Reinforcing factors</strong> — the follow-up, peer support, and family attitudes that <em>sustain</em> the behavior after the first decision.<br><br>A program that fixes access but not belief is an accessible program nobody uses. One that fixes belief and access but not reinforcement sees people start — and quietly drop out. <strong>All three layers, addressed explicitly.</strong> Not equally — explicitly.<br><br>My team each sits with the family member they've carried since Module 7. Map the layer, find the gap, and revise the strategy with the <em>minimum effective change</em> — so it stops at enrollment instead of stopping at the referral.",
+      "transcript": "Last module you built the prevention strategy: a mission, goals, SMART objectives, PEARL-tested strategies, and a logic model. On paper it was complete. Then we sent it into the world, and the world had conditions we never mapped. Here is the uncomfortable number: four of twenty-three referred patients enrolled. Carmen Rivera, who met every criterion, who had a navigator and a warm handoff and a confirmed risk, is not one of them. Nothing about the strategy failed. Something about behavior did, and we didn't account for it. That is what PRECEDE-PROCEED Phase 3, the educational and ecological assessment, exists to catch. Before you finalize a strategy, map the conditions that decide whether people act. They fall in three layers. Predisposing factors: the beliefs, knowledge, and motivation inside the person. Enabling factors: the access, transport, language, and schedule that make acting possible or impossible. Reinforcing factors: the follow-up, peer support, and family attitudes that sustain the behavior after the first decision. A program that fixes access but not belief is an accessible program nobody uses. One that fixes belief and access but not reinforcement sees people start, and quietly drop out. All three layers, addressed explicitly. Not equally, explicitly. My team each sits with the family member they've carried since Module 7. Map the layer, find the gap, and revise the strategy with the minimum effective change, so it stops at enrollment instead of stopping at the referral.",
+      "audio": "assets/audio/avery_intro_m8.mp3"
+    },
+    "debrief": {
+      "title": "Dr. Avery's Debrief",
+      "sub": "Module 8 · Why Carmen Hasn't Gone",
+      "lessonsIntro": "Three layers, one honest question — does the strategy address this, or just assume it?",
+      "bodyHtml": "The strategy wasn't wrong. It was <strong>incomplete</strong> — it stopped at the referral. Today you took it the rest of the way. You named the <strong>behavior</strong>, not the outcome. You mapped three layers: <strong>predisposing</strong> belief, <strong>enabling</strong> access, <strong>reinforcing</strong> support. You found the layer the plan went silent on, and you closed it with the <strong>minimum effective change</strong> — then you proved the change was real by putting it in the logic model.<br><br>Now do it for your own population. Your <strong>Behavior Change Layer Addendum</strong> adds Phase 3 to Section IV: a named target behavior, a <strong>PER map</strong> with at least two factors per layer traced to evidence, your <strong>gaps</strong> named, <strong>minimum-effective revisions</strong> for each, and a <strong>logic-model component</strong> that shows the new inputs and activities. You are not adding a new section — you are giving the strategy you already built a behavior-change layer.<br><br>A plan that accounts only for what a program does is an activity schedule. A plan that accounts for motivation, capacity, and what sustains people is a plan that actually moves them. That's the difference between four of twenty-three — and the number we came here to change.",
+      "transcript": "The strategy wasn't wrong. It was incomplete, it stopped at the referral. Today you took it the rest of the way. You named the behavior, not the outcome. You mapped three layers: predisposing belief, enabling access, reinforcing support. You found the layer the plan went silent on, and you closed it with the minimum effective change, then you proved the change was real by putting it in the logic model. Now do it for your own population. Your Behavior Change Layer Addendum adds Phase 3 to Section IV: a named target behavior, a PER map with at least two factors per layer traced to evidence, your gaps named, minimum-effective revisions for each, and a logic-model component that shows the new inputs and activities. You are not adding a new section, you are giving the strategy you already built a behavior-change layer. A plan that accounts only for what a program does is an activity schedule. A plan that accounts for motivation, capacity, and what sustains people is a plan that actually moves them. That's the difference between four of twenty-three, and the number we came here to change.",
+      "audio": "assets/audio/avery_exit_m8.mp3"
+    }
+  },
+  "team": [
+    {
+      "key": "alicia",
+      "name": "Alicia",
+      "initials": "AR",
+      "creds": "PTA",
+      "color": "#F79646",
+      "bgDark": "#2a1c0a",
+      "phColor": "#fff",
+      "role": "Carmen · Target behavior & predisposing",
+      "ariaName": "Alicia, PTA",
+      "portrait": "assets/alicia.png",
+      "audio": "assets/audio/alicia_m8.mp3",
+      "lesson": "Target behavior & predisposing — name the behavior, not the outcome, then fix beliefs with motivation, not logistics. Carmen's fatalism is a predisposing factor a bus pass can't touch.",
+      "intro": {
+        "role": "Physical Therapist Assistant",
+        "text": "Before we map a single factor, we have to name the behavior we're actually trying to change. Not the outcome — “Carmen doesn't develop diabetes” is years away and nothing I can act on Monday. The behavior is specific: Carmen completes the program. Once it's named, we ask the first behavior question — does she even believe acting is worth it? Because she told me something I can't unhear: “My mother had it. I figured I'd get it too. Maybe there's nothing I can do.”",
+        "transcript": "Before we map a single factor, we have to name the behavior we're actually trying to change. Not the outcome. Carmen doesn't develop diabetes is years away and nothing I can act on Monday. The behavior is specific: Carmen completes the program. Once it's named, we ask the first behavior question: does she even believe acting is worth it? Because she told me something I can't unhear: My mother had it. I figured I'd get it too. Maybe there's nothing I can do."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/carmen.jpeg",
+          "pos": "50% 22%"
+        },
+        "q2": {
+          "img": "assets/scenes/alicia_q2_m8.jpeg",
+          "pos": "50% 32%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Name the behavior — not the outcome it produces.\"",
+        "family": true,
+        "familyText": "Carmen Rivera, 72 · prediabetes, high-risk profile · the secondary-prevention target whose case opened this whole effort. The plan depends on one behavior: she completes the DPP.",
+        "ctx": "TARGET BEHAVIOR — Phase 3 maps factors around a specific behavior, named first. A behavior is something a person does; an outcome is the health result that follows. You can map predisposing, enabling, and reinforcing factors around an action — not around a clinical result.",
+        "q": "Which is the correctly named target behavior for Carmen's PER map?",
+        "choices": [
+          {
+            "text": "\"Carmen completes at least 12 of 16 Diabetes Prevention Program sessions.\"",
+            "correct": true,
+            "feedback": "Right. It names a specific, observable action the strategy depends on, so you can map predisposing, enabling, and reinforcing factors around it. The rubric is explicit: name the behavior — “completing 12 of 16 DPP sessions,” not “reducing prediabetes progression.”",
+            "takeaway": "A target behavior is specific and observable — something the person does, named before any factor is mapped."
+          },
+          {
+            "text": "\"Carmen reduces her progression from prediabetes to Type 2 diabetes.\"",
+            "correct": false,
+            "consequence": "Mapping factors around an outcome instead of an action leaves the whole analysis floating free of any real decision point — there's nothing concrete to enable or reinforce.",
+            "feedback": "That's the outcome, not the behavior. You can't enable or reinforce a clinical result — you enable and reinforce the action that produces it (completing the DPP)."
+          },
+          {
+            "text": "\"Carmen improves her health and takes her diabetes risk seriously.\"",
+            "correct": false,
+            "feedback": "Doubly unmappable: “improves her health” is an outcome, and “takes it seriously” is an attitude, not an observable behavior. Name the action — completing the DPP — and the attitude becomes a predisposing factor you map around it."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Fatalism is a belief — a bus pass won't touch it.\"",
+        "family": false,
+        "ctx": "PREDISPOSING FACTORS — the intrapersonal influences (knowledge, beliefs, perceived susceptibility, self-efficacy, cultural frameworks) that shape whether a person is motivated to act, before any external condition applies.",
+        "q": "Carmen's words — “I figured I'd get it too; maybe there's nothing I can do.” Which factor is this, and why does it matter?",
+        "choices": [
+          {
+            "text": "A predisposing factor — fatalism / low perceived control. It's a belief that action is pointless, so it suppresses motivation before access is ever considered. The fix is motivational, not logistical: brief MI at the point of referral that makes her personal risk — and her ability to change it — concrete.",
+            "correct": true,
+            "feedback": "Right. Fatalism lives inside the person — a belief about susceptibility and control. No amount of access touches it; a patient who thinks acting is futile won't act on a perfectly reachable program. The revision targets the belief: show her her own numbers and her own trajectory.",
+            "takeaway": "Predisposing factors are belief, knowledge, and motivation. A fatalistic belief is changed with information and motivation — not a bus pass."
+          },
+          {
+            "text": "An enabling factor — she lacks the resources to attend, so the program needs to be made more accessible.",
+            "correct": false,
+            "consequence": "Treat a belief as an access problem and you pour resources into reaching a patient who still won't act, because the thing stopping her was never the distance.",
+            "feedback": "Fatalism is a belief, not a resource barrier. Making the program more accessible won't move a patient who doesn't believe acting matters. Her food insecurity is an enabling factor — but the words quoted here are predisposing."
+          },
+          {
+            "text": "A reinforcing factor — no one is rewarding her for engaging, so she's lost her motivation.",
+            "correct": false,
+            "feedback": "Close, but reinforcing factors act after the behavior, to sustain it. Carmen hasn't started — the belief is suppressing the initial decision. Treat a pre-action belief as post-action reinforcement and you aim the fix at follow-up calls she'll never receive, because she never enrolls."
+          }
+        ]
+      }
+    },
+    {
+      "key": "marcus",
+      "name": "Marcus",
+      "initials": "MC",
+      "creds": "CMA",
+      "color": "#4F81BD",
+      "bgDark": "#1e2e4a",
+      "phColor": "#fff",
+      "role": "Lucia · Enabling factors",
+      "ariaName": "Marcus, CMA",
+      "portrait": "assets/marcus.png",
+      "audio": "assets/audio/marcus_m8.mp3",
+      "lesson": "Enabling factors — capacity, not will: a motivated Lucia still can't reach a morning, English-only program across town. One routing rule fixes transport, schedule, and language at once.",
+      "intro": {
+        "role": "Certified Medical Assistant",
+        "text": "Lucia wants nothing to do with the system — her last real contact was an ER visit — so it's easy to read her as “unmotivated.” But watch what happens when you separate motivation from capacity. The cohort we referred her to meets Tuesday and Thursday mornings, forty minutes away on two buses, in English. Lucia works mornings and her first language is Spanish. Even a fully motivated Lucia has no real pathway to that program. That's not her attitude — that's our design.",
+        "transcript": "Lucia wants nothing to do with the system, her last real contact was an ER visit, so it's easy to read her as unmotivated. But watch what happens when you separate motivation from capacity. The cohort we referred her to meets Tuesday and Thursday mornings, forty minutes away on two buses, in English. Lucia works mornings and her first language is Spanish. Even a fully motivated Lucia has no real pathway to that program. That's not her attitude, that's our design."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/lucia.jpeg",
+          "pos": "50% 28%"
+        },
+        "q2": {
+          "img": "assets/scenes/marcus_q2_m8.jpeg",
+          "pos": "50% 50%"
+        }
+      },
+      "q1": {
+        "bubble": "\"If a motivated person still can't get there, the barrier is enabling.\"",
+        "family": true,
+        "familyText": "Lucia Rivera, ~50 · suspected unmanaged Type 2 diabetes (tertiary target) · works mornings, primary language Spanish, no car · the referred DPP cohort meets Tue/Thu mornings, 40 minutes away on two buses, English-only.",
+        "ctx": "ENABLING FACTORS — the environmental conditions, resources, and skills that make action possible or impossible regardless of motivation: access, transportation, cost, language, schedule, required skills.",
+        "q": "Which is the cluster of enabling barriers blocking Lucia?",
+        "choices": [
+          {
+            "text": "Transportation (40 minutes, two buses, no car), schedule conflict (sessions fall during her work hours), and language (the program is English-only) — three structural conditions that make attendance impossible no matter how motivated she is.",
+            "correct": true,
+            "feedback": "Right. Each is a condition of capacity, not will. Any one would cut uptake; all three together mean a willing Lucia still has no pathway to the program we referred her to. That's the enabling layer in three barriers.",
+            "takeaway": "Enabling factors are about capacity, not will. If a motivated person still can't get there, on time, in their language, the barrier is enabling."
+          },
+          {
+            "text": "Her fatalistic belief that diabetes is inevitable, and her low perceived susceptibility.",
+            "correct": false,
+            "consequence": "Answer an enabling question with a belief and you counsel a willing patient about motivation she may already have, while the bus route and the work schedule keep the program physically out of reach.",
+            "feedback": "Those are predisposing factors — belief and motivation. The question is what blocks a willing Lucia from acting, and that's the structural access barriers, not her beliefs."
+          },
+          {
+            "text": "Her husband's view that she doesn't need the classes, and the lack of follow-up after referral.",
+            "correct": false,
+            "feedback": "Those are reinforcing factors — social influences that sustain or undermine after a decision. They matter, but they aren't what makes the program physically unreachable. Fix only the social layer and a motivated, well-supported Lucia still can't board a bus to a class held while she's at work."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"One routing rule can close three enabling barriers at once.\"",
+        "family": false,
+        "ctx": "THE ENABLING FIX — there is a Spanish-language DPP cohort at the Riverside Flats Community Center: Tue/Thu evenings, eight minutes away by bus, same curriculum. Marcus didn't know about it when he made Lucia's referral. The fix is a referral rule, not a new program.",
+        "q": "What is the most effective enabling revision — and why is it “minimum effective”?",
+        "choices": [
+          {
+            "text": "A referral decision tree: HRSN-positive for transportation → route to the community site first; Spanish-speaking → bilingual evening cohort by default. One routing rule resolves transportation, schedule, and language at a single decision point — using a cohort that already exists, with no new resources.",
+            "correct": true,
+            "feedback": "Exactly. The minimum-effective revision is the smallest change that closes the gap, and this one closes three enabling barriers at once because the resource is already there. Route to it; don't rebuild it.",
+            "takeaway": "Minimum effective = the smallest change that closes the gap. One routing rule can resolve three enabling barriers when the resource already exists."
+          },
+          {
+            "text": "Launch a new Spanish-language DPP cohort near Lucia, hire bilingual staff, and arrange a dedicated shuttle.",
+            "correct": false,
+            "consequence": "Building a parallel program to solve a routing problem burns resources the plan doesn't have and fails PEARL — a bilingual evening cohort already runs eight minutes away.",
+            "feedback": "It would work, but it's not minimum effective and it fails PEARL on resources. Building a parallel program to solve a routing problem is exactly the over-scaled revision the rubric marks down."
+          },
+          {
+            "text": "Counsel Lucia to find her own way to the existing morning sessions — a neighbor, an earlier bus, a day off work.",
+            "correct": false,
+            "feedback": "That hands the structural barrier back to the patient as a personal problem. Enabling revisions change the program's conditions, not the patient's willpower. “Try harder to reach an unreachable program” isn't a revision."
+          }
+        ]
+      }
+    },
+    {
+      "key": "jordan",
+      "name": "Jordan",
+      "initials": "JD",
+      "creds": "Nutrition",
+      "color": "#4FA85C",
+      "bgDark": "#12331f",
+      "phColor": "#fff",
+      "role": "DeShawn · Reinforcing factors",
+      "ariaName": "Jordan, Nutrition",
+      "portrait": "assets/jordan.png",
+      "audio": "assets/audio/jordan_m8.mp3",
+      "lesson": "Reinforcing factors — what happens after the act decides whether it lasts. A Day-7 call and a peer buddy beat a longer deadline and another brochure.",
+      "intro": {
+        "role": "Nutrition Specialist",
+        "text": "DeShawn might actually enroll — he's done it before, and then he vanished. That's the pattern reinforcing factors explain: what happens after someone acts. He got the referral, and then nothing — no call from us at day seven. At home the message is “you feel fine, why bother.” And nobody in his circle treats prevention as normal; you go to the doctor when something breaks. Motivation gets you in the door once. Reinforcement is the only thing that keeps the door from closing behind you.",
+        "transcript": "DeShawn might actually enroll, he's done it before, and then he vanished. That's the pattern reinforcing factors explain: what happens after someone acts. He got the referral, and then nothing, no call from us at day seven. At home the message is you feel fine, why bother. And nobody in his circle treats prevention as normal; you go to the doctor when something breaks. Motivation gets you in the door once. Reinforcement is the only thing that keeps the door from closing behind you."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/deshawn.jpeg",
+          "pos": "50% 30%"
+        },
+        "q2": {
+          "img": "assets/scenes/jordan_q2_m8.jpeg",
+          "pos": "50% 38%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Motivation gets you in the door once. Reinforcement keeps it open.\"",
+        "family": true,
+        "familyText": "DeShawn Washington, 48 · diagnosed cardiometabolic disease (tertiary target) · enrolled once before and dropped out · no provider follow-up after referral; family treats the diagnosis as not serious; no peer or community norm of preventive engagement.",
+        "ctx": "REINFORCING FACTORS — the rewards, feedback, and social influences that follow a behavior and either sustain it or let it extinguish: provider follow-up, peer support, family attitudes, community norms, incentives.",
+        "q": "Which are the reinforcing factors driving DeShawn's attrition?",
+        "choices": [
+          {
+            "text": "No provider follow-up after the handoff, a family message that the diagnosis “isn't serious,” and no community norm of preventive engagement — social and feedback conditions that act after he enrolls and let the behavior extinguish.",
+            "correct": true,
+            "feedback": "Right. Each operates after the decision to act. DeShawn has already shown he'll enroll; what's missing is anything that sustains it. Absent follow-up, ambivalent family, and weak norms are the textbook reinforcing profile for attrition.",
+            "takeaway": "Reinforcing factors operate after the behavior. Absent follow-up, ambivalent family, and weak norms are why initial uptake fades into drop-out."
+          },
+          {
+            "text": "The 40-minute commute and the morning schedule conflict.",
+            "correct": false,
+            "consequence": "Aim the fix at access and you may get him through the door again — into the same silence that pulled him out the first time.",
+            "feedback": "Those are enabling barriers — they govern whether he can attend, not whether anything sustains him once he does. DeShawn's problem is attrition after access, which is the reinforcing layer."
+          },
+          {
+            "text": "His belief that the disease is inevitable and not worth fighting.",
+            "correct": false,
+            "feedback": "That's a predisposing belief — and it doesn't fit DeShawn, who enrolled before. Aim the fix at motivation he already has and you re-explain a risk he accepts, while the silence after referral keeps pulling him back out. The missing piece is reinforcement, not initial motivation."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Close a reinforcing gap with contact, not another referral.\"",
+        "family": false,
+        "ctx": "THE REINFORCING FIX — the strategy currently ends at the warm handoff. Reinforcement has to be built in after enrollment — and the team's constraint is real: no new funding, only coordination.",
+        "q": "Which revision closes the reinforcing gap?",
+        "choices": [
+          {
+            "text": "A Day-7 navigator call — not a box-check, but “how did enrollment go, what came up, what can I help with” — plus a peer-buddy match in the first two weeks of the cohort. Both add reinforcement after the behavior and require coordination, not new resources.",
+            "correct": true,
+            "feedback": "Exactly. A scheduled follow-up supplies provider reinforcement; a peer buddy supplies social support and a norm of engagement. Together they convert one-time uptake into sustained participation — the reinforcing layer the warm handoff left empty.",
+            "takeaway": "Close a reinforcing gap with sustained contact and social support after the action — a scheduled follow-up and a peer connection, not another referral."
+          },
+          {
+            "text": "Extend the referral's validity window from 30 to 90 days so he has more time to enroll.",
+            "correct": false,
+            "consequence": "More time on a silent pathway just lengthens the silence — the handoff still ends in nothing, and DeShawn drifts out exactly as before.",
+            "feedback": "More time on the same silent pathway adds no reinforcement. The problem isn't the deadline; it's that nothing follows the handoff."
+          },
+          {
+            "text": "Hand DeShawn a brochure on the long-term complications of uncontrolled diabetes.",
+            "correct": false,
+            "feedback": "That targets predisposing knowledge he already has. Information isn't reinforcement — it doesn't sustain a behavior across weeks. He needs follow-up and peer support, not a heavier dose of risk facts."
+          }
+        ]
+      }
+    },
+    {
+      "key": "nova",
+      "name": "Nova",
+      "initials": "NV",
+      "creds": "RDH",
+      "color": "#CF95C7",
+      "bgDark": "#2e1b2b",
+      "phColor": "#fff",
+      "role": "Imani · Gap identification",
+      "ariaName": "Nova, RDH",
+      "portrait": "assets/nova.png",
+      "audio": "assets/audio/nova_m8.mp3",
+      "lesson": "Gap identification — “structurally complete” isn't “people engage.” Name the layer that's missing and locate the failure in the strategy, not the patient.",
+      "intro": {
+        "role": "Registered Dental Hygienist",
+        "text": "Imani's the easy one to get wrong, because on paper our strategy looks done — a referral pathway, a navigator, a warm handoff. Every box from Module 7 is checked. But “structurally complete” and “people actually engage” are two different claims. Gap identification is where you hold the strategy up against each PER layer and ask, honestly: does it address this, or does it just assume it? For Imani's young, Spanish-first, institution-wary cohort, the honest answer is that we built access and assumed the rest.",
+        "transcript": "Imani's the easy one to get wrong, because on paper our strategy looks done: a referral pathway, a navigator, a warm handoff. Every box from Module 7 is checked. But structurally complete and people actually engage are two different claims. Gap identification is where you hold the strategy up against each PER layer and ask, honestly: does it address this, or does it just assume it? For Imani's young, Spanish-first, institution-wary cohort, the honest answer is that we built access and assumed the rest."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/imani.jpeg",
+          "pos": "50% 28%"
+        },
+        "q2": {
+          "img": "assets/scenes/nova_q2_m8.jpeg",
+          "pos": "50% 42%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Structurally complete is not the same as people engage.\"",
+        "family": true,
+        "familyText": "Imani Washington, 24 · primary-prevention target · young, Spanish-first, part of a community wary of institutional programs. The Module 7 strategy provides a referral pathway, a navigator, and a warm handoff — and ends there.",
+        "ctx": "GAP IDENTIFICATION — hold the current strategy against each PER layer and name where it goes silent. “Structurally complete” is not the same as “addresses the behavioral conditions for engagement.”",
+        "q": "Where is the gap in the Module 7 strategy for Imani's cohort?",
+        "choices": [
+          {
+            "text": "The strategy addresses enabling access (a pathway and a warm handoff) but goes silent on the reinforcing layer — there's no mechanism that sustains engagement after the handoff, and no trust-building for an institution-wary community. The handoff is warm; then it goes cold.",
+            "correct": true,
+            "feedback": "Right. The gap is a PER layer the strategy assumes rather than addresses. Access is built; reinforcement is missing. Naming the layer and the missing mechanism is what makes the gap something you can revise against.",
+            "takeaway": "A gap is a PER layer the strategy assumes instead of addresses. Name the layer and the missing mechanism — not just “engagement is low.”"
+          },
+          {
+            "text": "There's no gap — the strategy is structurally complete, with a validated pathway, a navigator, and a warm handoff.",
+            "correct": false,
+            "consequence": "Declaring “no gap” freezes a strategy that's working exactly as designed while the population still isn't showing up — the four-of-twenty-three number never moves.",
+            "feedback": "“Complete” describes the program's design, not the behavioral conditions for engagement. Four of twenty-three enrolled; a complete structure with no reinforcing layer is exactly how that number happens."
+          },
+          {
+            "text": "The whole strategy is wrong and should be rebuilt from the mission down.",
+            "correct": false,
+            "feedback": "Over-correction. The mission, goals, and pathway are sound; the strategy is incomplete, not wrong. You add the missing behavior layer — you don't start over and throw away six modules of assessment."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"A usable gap names the layer, the mechanism, and the evidence.\"",
+        "family": false,
+        "ctx": "WRITING THE GAP — a gap statement has to be specific enough to design a revision against: it names the PER layer, the missing mechanism, and the evidence — and it locates the failure in the strategy, not the patient.",
+        "q": "Which gap statement is good enough to build a revision on?",
+        "choices": [
+          {
+            "text": "\"The strategy provides a warm handoff but no post-referral reinforcement — no provider follow-up and no peer support — a reinforcing-layer gap, evidenced by 4 of 23 enrolling and the attrition pattern Marcus documented.\"",
+            "correct": true,
+            "feedback": "Yes. It names the layer (reinforcing), the missing mechanism (follow-up + peer support), and the evidence (the enrollment number, the documented pattern). A revision designer knows exactly what to build.",
+            "takeaway": "A usable gap names the layer, the missing mechanism, and the evidence — so the revision has a precise target."
+          },
+          {
+            "text": "\"Patient engagement in the program could be stronger.\"",
+            "correct": false,
+            "consequence": "A vague gap produces a vague revision — the rubric scores it as generic, and the team has nothing specific to build against.",
+            "feedback": "True but useless. No layer, no mechanism, no evidence — nothing to design against."
+          },
+          {
+            "text": "\"Patients in Riverside Flats aren't motivated enough to follow through.\"",
+            "correct": false,
+            "feedback": "This blames the population and misreads the layer — the documented barriers are enabling and reinforcing, not motivation. A gap statement locates the failure in the strategy's design, not the patient's character."
+          }
+        ]
+      }
+    },
+    {
+      "key": "elena",
+      "name": "Elena",
+      "initials": "EL",
+      "creds": "RRT",
+      "color": "#B3A2C7",
+      "bgDark": "#211a2e",
+      "phColor": "#fff",
+      "role": "Marco · Revision & logic model",
+      "ariaName": "Elena, RRT",
+      "portrait": "assets/elena.png",
+      "audio": "assets/audio/elena_m8.mp3",
+      "lesson": "Revision & logic model — minimum effective change, built forward, and it isn't real until it shows up in the model as new inputs and activities.",
+      "intro": {
+        "role": "Registered Respiratory Therapist",
+        "text": "Marco's strand is the one that has to prove all of this connects back to the model. A behavior-change revision isn't a sticky note on the side of the plan — if it doesn't show up in the logic model as new inputs and new activities, it didn't really happen. My job is two-fold: pick the minimum effective revision that closes the gap, and then make sure the chain actually absorbs it — new input, new activity, all the way through to the same outcomes. Build forward from Module 7. Don't tear it down.",
+        "transcript": "Marco's strand is the one that has to prove all of this connects back to the model. A behavior-change revision isn't a sticky note on the side of the plan: if it doesn't show up in the logic model as new inputs and new activities, it didn't really happen. My job is two-fold: pick the minimum effective revision that closes the gap, and then make sure the chain actually absorbs it, new input, new activity, all the way through to the same outcomes. Build forward from Module 7. Don't tear it down."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/marco.jpeg",
+          "pos": "50% 25%"
+        },
+        "q2": {
+          "img": "assets/scenes/elena_q2_m8.jpeg",
+          "pos": "55% 35%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Minimum effective: the smallest change that closes the gap.\"",
+        "family": true,
+        "familyText": "Marco Rivera-Washington, 16 · primary-prevention, school-based strand · his Module 7 logic model is the one every team member's revisions will feed into.",
+        "ctx": "STRATEGY REVISION — for each gap, the minimum effective change: the smallest revision that closes it, feasible on PEARL resources and acceptability, that strengthens the existing strategy rather than replacing the mission, goals, or objectives.",
+        "q": "Which revision best fits the “minimum effective” standard for a reinforcing-layer gap in Marco's school strand?",
+        "choices": [
+          {
+            "text": "Add a brief teacher/CHW check-in and a peer-cohort buddy within the existing school sessions — a coordination change that adds reinforcement using staff and structure already in place, leaving the mission, goals, and objectives intact.",
+            "correct": true,
+            "feedback": "Right. It closes the specific gap (no reinforcement) with the smallest feasible change, builds on what already exists, and doesn't touch the parts of the plan that work. That's the definition of minimum effective.",
+            "takeaway": "Minimum effective = the smallest, feasible change that closes the gap and builds on what exists — strengthening the strategy, not replacing it."
+          },
+          {
+            "text": "Replace the school-based nutrition strand with a new district-wide adolescent behavioral-health program.",
+            "correct": false,
+            "consequence": "A from-scratch district program is over-scaled, fails PEARL on resources, and throws away a sound Module 7 design to fix one missing layer.",
+            "feedback": "That's not a revision, it's a different strategy — over-scaled, likely failing PEARL on resources, and discarding a sound Module 7 design. Minimum effective closes the gap; it doesn't restart the plan."
+          },
+          {
+            "text": "Add every reinforcement idea available — incentives, an app, home visits, monthly events — to be safe.",
+            "correct": false,
+            "feedback": "Maximal, not minimum effective. Feasibility collapses and most of it is unfunded. The standard is the smallest change that closes the specific gap, not the longest list that might help."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"A revision is real only when it appears in the model.\"",
+        "family": false,
+        "ctx": "UPDATE THE MODEL — the behavior-change revisions have to appear as new inputs and new activities that connect into the existing chain. The model is updated and labeled, not replaced — an addendum that builds forward from the Module 7 logic model.",
+        "q": "How should the PER revisions enter the logic model?",
+        "choices": [
+          {
+            "text": "Add the new inputs (bilingual navigator-conversation protocol, referral routing decision tree, Day-7 follow-up protocol, peer-buddy coordination) and new activities (brief MI at referral, HRSN-to-food-access referral, cohort routing by language/transport, peer matching), each connecting forward to existing outputs and outcomes — an updated, clearly labeled version of the Module 7 model.",
+            "correct": true,
+            "feedback": "Yes. Every revision becomes a visible input or activity that links into the chain you already built, labeled as the behavior-change layer. That's how the rubric knows the revision is real — it can see it in the model.",
+            "takeaway": "Revisions are real only when they appear in the model — new inputs and activities, connected into the existing chain and labeled as the behavior-change layer."
+          },
+          {
+            "text": "Leave the logic model unchanged — the revisions are operational details that don't belong in a planning model.",
+            "correct": false,
+            "consequence": "A model that hides the new inputs and activities lets the plan claim a behavior layer it can't show — exactly what the rubric checks for and docks.",
+            "feedback": "If a revision adds an input or an activity, it has to appear in the model — otherwise the plan claims a behavior layer it can't show. The rubric explicitly requires the new inputs and activities to be visible."
+          },
+          {
+            "text": "Replace the Module 7 logic model with a brand-new one built entirely around behavior change.",
+            "correct": false,
+            "feedback": "The addendum builds forward; replacing it severs the connection to the assessed chain and the mission and goals it supports. A from-scratch model erases the traceability to Sections II–IV that the whole portfolio is graded on."
+          }
+        ]
+      }
+    }
+  ]
+};
+
+/* ============================ ENGINE (do not edit per-table) ================ */
+// Derive the engine's lookup tables from TABLE. Adding/reordering members in
+// TABLE.team automatically updates the hub, progress count, and debrief.
+const TEAM = TABLE.team;
+const TEAM_KEYS = TEAM.map(t=>t.key);
+const byKey = {}; TEAM.forEach(t=>byKey[t.key]=t);
+
+const PORTRAITS = { avery:TABLE.avery.portrait };
+TEAM.forEach(t=>PORTRAITS[t.key]=t.portrait);
+
+const SCENE_IMG = 'assets/conferenceroom.jpg';
+const SCENE_ASSETS = {};
+TEAM.forEach(t=>SCENE_ASSETS[t.key]=t.scenes||{});
+function sceneFor(name,qNum){
+  const e=(SCENE_ASSETS[name]||{})['q'+qNum];
+  if(e&&e.video)return{video:e.video,pos:e.pos};
+  if(typeof e==='string')return{img:e};
+  if(e&&e.img)return{img:e.img,pos:e.pos};
+  return{img:SCENE_IMG};
+}
+const SCENE_BLOB = {};
+
+const AUDIO_URLS = { avery_intro:TABLE.avery.intro.audio, avery_exit:TABLE.avery.debrief.audio };
+TEAM.forEach(t=>AUDIO_URLS[t.key]=t.audio);
+
+const TRANSCRIPTS = { avery_intro:TABLE.avery.intro.transcript, avery_exit:TABLE.avery.debrief.transcript };
+TEAM.forEach(t=>TRANSCRIPTS[t.key]=(t.intro&&t.intro.transcript)||t.intro.text);
+
+const CHARS = {};
+TEAM.forEach(t=>{ CHARS[t.key]={color:t.color,bgDark:t.bgDark,audioKey:t.key,intro:t.intro,q1:t.q1,q2:t.q2}; });
+
+const TOTAL = TEAM_KEYS.length;
+
+const audios={};
+let currentChar=null, completed={}, q1Wrong=0, q2Wrong=0;
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Compute accent shades from a single hex so the whole UI re-themes per module.
+function applyTheme(hex){
+  function h2(x){return parseInt(x,16);}
+  const c=hex.replace('#','');
+  const r=h2(c.slice(0,2)),g=h2(c.slice(2,4)),b=h2(c.slice(4,6));
+  const mix=(t,a)=>[Math.round(r+(t[0]-r)*a),Math.round(g+(t[1]-g)*a),Math.round(b+(t[2]-b)*a)];
+  const rs=document.documentElement.style;
+  rs.setProperty('--accent',hex);
+  rs.setProperty('--accent-hover','rgb('+mix([0,0,0],.2).join(',')+')');
+  rs.setProperty('--accent-focus','rgb('+mix([255,255,255],.4).join(',')+')');
+  rs.setProperty('--accent-soft','rgba('+r+','+g+','+b+',.07)');
+  rs.setProperty('--accent-soft2','rgba('+r+','+g+','+b+',.13)');
+}
+
+// Populate the static screens (intro / hub cards / debrief) from TABLE.
+function boot(){
+  applyTheme(TABLE.theme.accent);
+  document.title = TABLE.meta.title + ' · ' + TABLE.meta.moduleLabel;
+
+  // intro
+  document.getElementById('intro-avery-photo').src=TABLE.avery.portrait;
+  document.getElementById('intro-avery-label').textContent=TABLE.avery.label;
+  document.getElementById('intro-title').textContent=TABLE.meta.title;
+  document.getElementById('intro-sub').textContent=TABLE.meta.moduleLabel;
+  document.getElementById('tr-intro').textContent=TABLE.avery.intro.transcript;
+  document.getElementById('intro-quote').textContent=TABLE.avery.intro.quote;
+  document.getElementById('intro-body').innerHTML=TABLE.avery.intro.bodyHtml;
+
+  // hub
+  document.getElementById('hub-title').textContent=TABLE.meta.hubTitle;
+  document.getElementById('hub-sub').textContent=TABLE.meta.hubSub;
+  document.getElementById('char-grid').innerHTML=TEAM.map(t=>(
+    '<div class="char-card" id="card-'+t.key+'" style="background:'+t.bgDark+';border-color:'+t.color+'" '+
+    'onclick="startChar(\''+t.key+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \')startChar(\''+t.key+'\')" '+
+    'tabindex="0" role="listitem button" aria-label="'+esc(t.ariaName||t.name)+'">'+
+    '<img class="char-avatar" src="'+t.portrait+'" alt="'+esc(t.name)+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'+
+    '<div class="char-avatar-ph" style="background:'+t.color+';color:'+(t.phColor||'#fff')+';display:none">'+esc(t.initials||'')+'</div>'+
+    '<div class="char-name">'+esc(t.name)+'</div><div class="char-role">'+esc(t.role)+'</div>'+
+    '</div>'
+  )).join('');
+
+  // family / consequence flag labels (canon, constant)
+  document.querySelectorAll('.family-tag').forEach(e=>e.textContent=TABLE.meta.familyTag);
+  document.querySelectorAll('.consequence-tag').forEach(e=>e.textContent='CONSEQUENCE · '+TABLE.meta.familyTag);
+
+  // debrief
+  document.getElementById('exit-title').textContent=TABLE.avery.debrief.title;
+  document.getElementById('exit-sub').textContent=TABLE.avery.debrief.sub;
+  document.getElementById('tr-exit').textContent=TABLE.avery.debrief.transcript;
+  document.getElementById('exit-lessons-intro').textContent=TABLE.avery.debrief.lessonsIntro;
+  document.getElementById('exit-lessons').innerHTML=TEAM.map(t=>(
+    '<div style="display:flex;gap:.65rem;align-items:flex-start">'+
+    '<span style="width:9px;height:9px;border-radius:50%;background:'+t.color+';margin-top:.4rem;flex-shrink:0"></span>'+
+    '<div style="color:#cdd8e6;font-size:.8rem;line-height:1.55"><strong style="color:#fff">'+esc(t.name)+' ('+esc(t.creds)+'):</strong> '+esc(t.lesson)+'</div></div>'
+  )).join('');
+  document.getElementById('exit-body').innerHTML=TABLE.avery.debrief.bodyHtml;
+  document.getElementById('exit-completion').textContent=TABLE.meta.completion;
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+}
+
+function getAudio(key){
+  if(!audios[key]){
+    const url=key==='char_intro'?AUDIO_URLS[currentChar]:AUDIO_URLS[key];
+    if(!url)return null;
+    const a=new Audio();
+    audios[key]=a;
+    a.addEventListener('timeupdate',()=>updateAudioProgress(key,a));
+    a.addEventListener('ended',()=>{
+      const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+      if(btn)btn.textContent='▶';
+    });
+    a.addEventListener('error',()=>showAudioError(key));
+    a.src=url;
+  }
+  return audios[key];
+}
+
+function showAudioError(key){
+  const errId=key==='char_intro'?'err-char_intro':`err-${key}`;
+  const errEl=document.getElementById(errId);
+  if(errEl)errEl.style.display='block';
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn){btn.textContent='✕';btn.disabled=true;}
+}
+
+function resetPlayButton(key){
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn)btn.textContent='▶';
+}
+
+let activeKey=null;
+
+function btnFor(key){
+  return key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+}
+
+function playKey(key){
+  stopAllAudio('');
+  const a=getAudio(key);if(!a)return;
+  activeKey=key;
+  a.play().then(()=>{
+    if(activeKey!==key){a.pause();return;}
+    const b=btnFor(key);if(b)b.textContent='⏸';
+  }).catch(()=>{
+    if(activeKey===key)resetPlayButton(key);
+  });
+}
+
+function toggleAudio(key){
+  const a=getAudio(key);if(!a)return;
+  if(a.paused){
+    playKey(key);
+  } else {
+    a.pause();activeKey=null;
+    const b=btnFor(key);if(b)b.textContent='▶';
+  }
+}
+
+function stopAllAudio(except){
+  if(activeKey&&activeKey!==except)activeKey=null;
+  Object.keys(audios).forEach(k=>{
+    if(k!==except&&audios[k]&&!audios[k].paused){
+      audios[k].pause();
+      const btn=btnFor(k);
+      if(btn)btn.textContent='▶';
+    }
+  });
+}
+
+function updateAudioProgress(key,a){
+  if(!a.duration)return;
+  const pct=a.currentTime/a.duration*100;
+  const fillId=key==='char_intro'?'fill-char_intro':'fill-'+key;
+  const timeId=key==='char_intro'?'time-char_intro':'time-'+key;
+  const fill=document.getElementById(fillId);
+  const time=document.getElementById(timeId);
+  if(fill)fill.style.width=pct+'%';
+  if(time){const m=Math.floor(a.currentTime/60),s=Math.floor(a.currentTime%60).toString().padStart(2,'0');time.textContent=m+':'+s;}
+}
+
+function seekAudio(e,key){
+  const a=getAudio(key);if(!a||!a.duration)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  a.currentTime=Math.max(0,Math.min(1,pct))*a.duration;
+}
+
+function toggleTranscript(id){
+  const el=document.getElementById(id);
+  const btn=document.querySelector(`[aria-controls="${id}"]`);
+  if(!el)return;
+  const open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(btn){btn.textContent=open?'Show transcript':'Hide transcript';btn.setAttribute('aria-expanded',!open);}
+}
+
+function announce(msg){
+  const r=document.getElementById('live-region');
+  if(r){r.textContent='';setTimeout(()=>r.textContent=msg,50);}
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el){el.classList.add('active');const first=el.querySelector('button,[tabindex="0"]');if(first)setTimeout(()=>first.focus(),100);}
+}
+
+function showHub(){
+  stopAllAudio('');
+  updateHub();
+  show('screen-hub');
+  if(TEAM_KEYS.every(c=>completed[c])){setTimeout(()=>{show('screen-exit');announce('Simulation complete. All perspectives reviewed.');},400);}
+}
+
+function updateHub(){
+  const done=Object.keys(completed).length;
+  document.getElementById('prog').style.width=(done/TOTAL*100)+'%';
+  document.getElementById('prog-label').textContent=done+' of '+TOTAL+' perspectives completed';
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(!card)return;
+    if(completed[c]){
+      card.classList.add('done');
+      card.setAttribute('tabindex','-1');
+      card.setAttribute('aria-disabled','true');
+      if(!card.querySelector('.done-badge')){const b=document.createElement('div');b.className='done-badge';b.textContent='✓';b.setAttribute('aria-hidden','true');card.appendChild(b);}
+    }
+  });
+}
+
+function confirmReset(){ resetSim(); }
+
+function resetSim(){
+  completed={};q1Wrong=0;q2Wrong=0;activeKey=null;
+  Object.keys(audios).forEach(k=>{audios[k].pause();audios[k].currentTime=0;const b=btnFor(k);if(b)b.textContent='▶';});
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(card){card.classList.remove('done');card.setAttribute('tabindex','0');card.removeAttribute('aria-disabled');const b=card.querySelector('.done-badge');if(b)b.remove();}
+  });
+  document.getElementById('prog').style.width='0%';
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+  show('screen-intro');
+  announce('Simulation reset. Starting over.');
+}
+
+function startChar(name){
+  if(completed[name])return;
+  currentChar=name;q1Wrong=0;q2Wrong=0;
+  if(audios['char_intro']){audios['char_intro'].pause();audios['char_intro'].currentTime=0;delete audios['char_intro'];}
+  const d=CHARS[name];
+  const panel=document.getElementById('ci-color-panel');
+  panel.style.background=d.bgDark;
+  const portrait=document.getElementById('ci-portrait');
+  portrait.src=PORTRAITS[name];portrait.alt=name.charAt(0).toUpperCase()+name.slice(1);
+  portrait.style.display='block';
+  document.getElementById('ci-portrait-ph').style.display='none';
+  document.getElementById('ci-portrait-ph').textContent=(byKey[name].initials||name.slice(0,2).toUpperCase());
+  document.getElementById('ci-name-large').textContent=byKey[name].name;
+  document.getElementById('ci-role-large').textContent=d.intro.role;
+  document.getElementById('ci-bar').style.borderColor=d.color;
+  document.getElementById('ci-play-btn').style.background=d.color;
+  document.getElementById('fill-char_intro').style.background=d.color;
+  document.getElementById('ci-play-btn').textContent='▶';
+  document.getElementById('ci-play-btn').disabled=false;
+  document.getElementById('fill-char_intro').style.width='0%';
+  document.getElementById('time-char_intro').textContent='0:00';
+  document.getElementById('err-char_intro').style.display='none';
+  document.getElementById('ci-role-label').textContent=d.intro.role;
+  document.getElementById('ci-intro-text').textContent=d.intro.text;
+  document.getElementById('tr-char').textContent=TRANSCRIPTS[name]||'';
+  document.getElementById('tr-char').style.display='none';
+  const tcBtn=document.getElementById('ci-transcript-btn');
+  if(tcBtn){tcBtn.textContent='Show transcript';tcBtn.setAttribute('aria-expanded','false');}
+  show('screen-char-intro');
+  announce(byKey[name].name+' — '+d.intro.role);
+}
+
+function goToQ1(){stopAllAudio('');renderQ1();show('screen-q1');announce('Question 1 of 2');}
+
+function playSceneVideo(vidEl,imgEl,src){
+  if(!vidEl)return;
+  vidEl.muted=true;vidEl.loop=true;vidEl.playsInline=true;
+  const fail=()=>{vidEl.style.display='none';if(imgEl){imgEl.src=SCENE_IMG;imgEl.style.display='block';}};
+  vidEl.onerror=fail;
+  vidEl.style.display='block';
+  const go=()=>vidEl.play().catch(()=>{});
+  if(SCENE_BLOB[src]){vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();return;}
+  fetch(src).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{
+    if(!SCENE_BLOB[src])SCENE_BLOB[src]=URL.createObjectURL(b);
+    vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();
+  }).catch(fail);
+}
+
+function setSceneImg(qNum,name,isColor){
+  const sceneEl=document.getElementById(`q${qNum}-scene-img`);
+  const vidEl=document.getElementById(`q${qNum}-scene-vid`);
+  const colorEl=document.getElementById(`q${qNum}-color-panel`);
+  const portEl=document.getElementById(`q${qNum}-portrait`);
+  const nameEl=document.getElementById(`q${qNum}-char-name`);
+  const d=CHARS[name];
+  const sc=isColor?{}:sceneFor(name,qNum);
+  const hasVid=!!sc.video;
+  const hasImg=!!sc.img;
+  if(hasVid){
+    playSceneVideo(vidEl,sceneEl,sc.video);
+    sceneEl.style.display='none';
+    if(colorEl)colorEl.style.display='none';
+  } else if(hasImg){
+    sceneEl.src=sc.img;sceneEl.style.display='block';sceneEl.style.objectPosition=sc.pos||'center';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl)colorEl.style.display='none';
+  } else {
+    sceneEl.style.display='none';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl){colorEl.style.display='flex';colorEl.style.background=d.bgDark;}
+    if(portEl){portEl.src=PORTRAITS[name];portEl.alt=name;}
+    if(nameEl)nameEl.textContent=byKey[name].name;
+  }
+  const fbSceneEl=document.getElementById(`fb${qNum}-scene-img`);
+  const fbVidEl=document.getElementById(`fb${qNum}-scene-vid`);
+  const fbColorEl=document.getElementById(`fb${qNum}-color`);
+  const fbPortEl=document.getElementById(`fb${qNum}-portrait`);
+  if(hasVid){
+    playSceneVideo(fbVidEl,fbSceneEl,sc.video);
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else if(hasImg){
+    if(fbSceneEl){fbSceneEl.src=sc.img;fbSceneEl.style.display='block';fbSceneEl.style.objectPosition=sc.pos||'center';}
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else {
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl){fbColorEl.style.display='flex';fbColorEl.style.background=d.bgDark;}
+    if(fbPortEl){fbPortEl.src=PORTRAITS[name];fbPortEl.alt=name;}
+  }
+}
+
+function renderQ1(){
+  const d=CHARS[currentChar].q1;
+  setSceneImg(1,currentChar,false);
+  document.getElementById('q1-bubble').textContent=d.bubble;
+  document.getElementById('q1-ctx').textContent=d.ctx;
+  document.getElementById('q1-text').textContent=d.q;
+  const fam=document.getElementById('q1-family');
+  if(d.family){fam.style.display='block';document.getElementById('q1-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q1-choices',d.choices,handleQ1);
+}
+
+function renderQ2(){
+  const d=CHARS[currentChar].q2;
+  setSceneImg(2,currentChar,false);
+  document.getElementById('q2-bubble').textContent=d.bubble;
+  document.getElementById('q2-ctx').textContent=d.ctx;
+  document.getElementById('q2-text').textContent=d.q;
+  const fam=document.getElementById('q2-family');
+  if(d.family){fam.style.display='block';document.getElementById('q2-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q2-choices',d.choices,handleQ2);
+}
+
+function renderChoices(id,choices,handler){
+  const el=document.getElementById(id);el.innerHTML='';
+  const shuffled=choices.slice();
+  for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+  shuffled.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.setAttribute('aria-label','Option '+(i+1)+': '+ch.text);
+    btn.innerHTML='<div class="cbullet" aria-hidden="true"></div><span class="ctext">'+esc(ch.text)+'</span>';
+    btn.onclick=()=>{
+      [...el.querySelectorAll('.choice-btn')].forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      setTimeout(()=>handler(ch),220);
+    };
+    el.appendChild(btn);
+  });
+}
+
+function handleQ1(ch){
+  const chosen=document.getElementById('fb1-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb1-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb1-consequence');
+  const averyEl=document.getElementById('fb1-avery');
+  const takeEl=document.getElementById('fb1-takeaway');
+  const actions=document.getElementById('fb1-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    addBtn(actions,'Continue to Question 2 →',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback);
+  } else {
+    q1Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb1-consequence-text').textContent=ch.consequence;}
+    if(q1Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb1-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ1();show('screen-q1');});
+    addBtn(actions,'Skip to Question 2',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb1');
+}
+
+function handleQ2(ch){
+  const chosen=document.getElementById('fb2-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb2-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb2-consequence');
+  const averyEl=document.getElementById('fb2-avery');
+  const takeEl=document.getElementById('fb2-takeaway');
+  const actions=document.getElementById('fb2-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    completed[currentChar]=true;updateHub();
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback+' Perspective complete.');
+  } else {
+    q2Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb2-consequence-text').textContent=ch.consequence;}
+    if(q2Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb2-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ2();show('screen-q2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb2');
+}
+
+function addBtn(container,label,fn){
+  const btn=document.createElement('button');
+  btn.className='fb-btn';
+  btn.innerHTML='<div class="fbullet" aria-hidden="true"></div><span class="fb-btn-text">'+esc(label)+'</span>';
+  btn.onclick=fn;container.appendChild(btn);
+}
+
+boot();   // populate screens from TABLE
+// No autoplay on load: narration starts only when the learner presses play.
+</script>
+</body>
+</html>
